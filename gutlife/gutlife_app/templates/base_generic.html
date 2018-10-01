@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'loginStyle.css' %}" />
+  {% block title %}<title>Gutli</title>{% endblock %}
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  </head>
+
+<body>
+  {% block content %}
+  {% endblock %}
+  {% if messages %}
+    {% for message in messages %}
+    <div class="centerText alert alert-success" id="message" style="width: 60%; margin-left: 20%;">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+</body>
+</html>

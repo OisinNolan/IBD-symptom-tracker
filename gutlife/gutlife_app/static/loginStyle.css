@@ -1,0 +1,16 @@
+.centerText {
+    text-align: center;
+    margin: 10px;
+}
+.container {
+    margin-top: 20px;
+    padding-top: 20px;
+}
+.loginTitle {
+    text-align: center;
+    margin: 10px;
+    padding-bottom: 10px;
+}
+.successMessage {
+    color: greenyellow;
+}

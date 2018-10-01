@@ -1,0 +1,302 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>GutLife</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'gutlife_app/style.css' %}" />
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="#myPopup" data-rel="popup" class="ui-btn ui-btn-inline ui-corner-all ui-icon-plus ui-btn-icon-left logbmbtn">Log BM</a>
+
+    <div data-role="popup" id="myPopup" class="ui-content" style="min-width:250px;">
+    <form method="post" action="/bm-log/">
+        {% csrf_token %}
+        <div>
+        <h3>BM Details</h3>
+        <span>{{ form }}</span>
+        <input type="submit" onclick="reload()" data-inline="true" value="Log BM">
+        </div>
+    </form>
+    </div>
+    <button onclick="goBack()" class="ui-btn ui-btn-inline ui-corner-all backbtn">Back</button>
+    <button onclick="goForward()" class="ui-btn ui-btn-inline ui-corner-all forwardbtn">Forward</button>
+    {% if user.is_authenticated %}
+    <button onclick="location.href='{% url 'logout' %}'" class="ui-btn ui-btn-inline ui-corner-all forwardbtn">Logout</button>
+    {% else %}
+    <button onclick="location.href='{% url 'login' %}'" class="ui-btn ui-btn-inline ui-corner-all forwardbtn">Login</button>
+    {% endif %}
+    <div style="width:75%;">
+        <canvas id="canvas"></canvas>
+    </div>
+    <script>
+        function reload() {
+            location.reload();
+        }
+
+        var data;
+        {% block jquery %}
+
+        var endpoint = '/api/data/';
+
+        $.ajax({
+            method: "GET",
+            url: endpoint,
+            success: function(jsonData) {
+                data = jsonData;
+            },
+            error: function(error_data) {
+                console.log("error")
+            }
+        })
+
+        {% endblock %}
+        var timeFormat = 'DD/MM/YYYY';
+        var week = 0;
+
+        function goBack() {
+            week--;
+            loadCanvas();
+        }
+
+        function goForward() {
+            week++;
+            loadCanvas();
+        }
+
+        function getDateCode(date) {
+            var dateCode = "D";
+            dateCode += date;
+            return dateCode;
+        }
+
+        function newDate(year, month, date, hour, minutes) {
+            month = month-1;
+            return moment().set({'year':year, 'month':month, 'date':date, 'hour':hour, 'minute':minutes}).toDate();
+        }
+
+        function separateTimeData(date, time) {
+            var dateTimeData = [];
+            if(date!=null) {
+                var year = date.substr(0,4);
+                var month = date.substr(5,2);
+                var date = date.substr(8,2);
+                dateTimeData[0] = year;
+                dateTimeData[1] = month;
+                dateTimeData[2] = date;
+            }
+            if(time!=null) {
+                var timeStr = time.toString();
+                var hour = timeStr.substr(0,2);
+                var minutes = timeStr.substr(3,2);
+                dateTimeData[3] = hour;
+                dateTimeData[4] = minutes;
+            }
+            return dateTimeData;
+        }
+
+        function formatTime(time) {
+            if(time != null) {
+                var timeStr = time.toString();
+                var hour = timeStr.substr(0,2);
+                var minutes = timeStr.substr(3,2);
+                var formattedTime = hour + "-" + minutes;
+                return formattedTime;
+            } else {
+                return '00-00';
+            }
+        }
+
+        function getDay(day) {
+            return moment().add(day, 'd').startOf('day').toDate();
+        }
+
+        function loadCanvas() {
+            dateCode = "D";
+            var date = moment(newDate(0+(7*week))).format('DDMMYYYY');
+            dateCode += date;
+
+            var dayTimes = [];
+            for(var i in data) {
+                var separatedTimeData = separateTimeData(data[i]['datecode'], data[i]['time']);
+                dayTimes[i] = newDate(separatedTimeData[0], separatedTimeData[1], separatedTimeData[2], separatedTimeData[3], separatedTimeData[4],);
+            }
+            
+            var currentWeek = [
+                getDay(0+(7*week)),
+                getDay(1+(7*week)),
+                getDay(2+(7*week)),
+                getDay(3+(7*week)),
+                getDay(4+(7*week)),
+                getDay(5+(7*week)),
+                getDay(6+(7*week)),
+                getDay(7+(7*week)),
+            ];            
+
+            var weekDayTimes = [];
+            var blankDaysData = [];
+
+            for(var i in currentWeek) {
+                if(i==6) {
+                    blankDaysData.push({x: currentWeek[i], y: 10});
+                } else {
+                    blankDaysData.push({x: currentWeek[i], y: 0});
+                }
+            }
+
+            for(var i=0; i<dayTimes.length; i++) {
+                if(dayTimes[i] >= currentWeek[0] && dayTimes[i] <= currentWeek[6]) {
+                    weekDayTimes.push(dayTimes[i]);
+                }
+            }
+
+            weekDayTimes.sort(function(a,b){return a - b});
+
+            console.log("weekdaytimes: ", weekDayTimes);
+
+            var formattedTimesData = [];
+
+            for(var i in data) {
+                formattedTimesData.push(formatTime(data[i]['time']));
+                console.log(data[i]['time']);
+            }
+
+            console.log(formattedTimesData);
+
+            var formattedDates = [];
+            var formattedTimes = [];
+
+            for(var i in weekDayTimes) {
+                formattedDates.push(moment(weekDayTimes[i]).format('YYYY-MM-DD'));
+                formattedTimes.push(moment(weekDayTimes[i]).format('hh-mm'));
+            }
+
+            console.log(formattedTimes);
+
+            var consistencyDay = {};
+            var solidityDay = {};
+            var consistencyData = [];
+            var solidityData = [];
+            for(var a=0; a<formattedDates.length; a++) {
+                var formattedDate = formattedDates[a];
+                var formattedTime = formattedTimes[a];
+                for(var i in data) {
+                    if(formattedDate==data[i]['datecode'] && formattedTime==formattedTimesData[i]) {
+                        var dateTime = formattedDate + "-" + formattedTime;
+                        consistencyDay[dateTime] = data[i]['consistency'];
+                        solidityDay[dateTime] = data[i]['solidity'];
+                    }
+                    consistencyData[i] = {x: weekDayTimes[i], y: consistencyDay[formattedDates[i]]};
+                    solidityData[i] = {x: weekDayTimes[i], y: solidityDay[formattedDates[i]]};
+                }
+            }
+            for(date in consistencyDay) {
+                console.log(date);
+                console.log(consistencyDay[date]);
+            }
+            /*
+                so the problem is that consistencyDay/solidityDay
+                do not double up on repeat dates.
+            */
+            var config = {
+                type:    'line',
+                data:    {
+                    datasets: [
+                        {
+                            label: "Consistency",
+                            data:  consistencyData,
+                            fill:  false,
+                            borderColor: 'blue',
+                            backgroundColor: 'blue',
+                            lineTension: 0.5
+                        },
+                        {
+                            label: "Solidity",
+                            data:  solidityData,
+                            fill:  false,
+                            borderColor: 'green',
+                            backgroundColor: 'green',
+                            lineTension: 0.5
+                        },
+                        {
+                            data:  blankDaysData,
+                            label: '',
+                            fill:  false,
+                            borderColor: 'rgba(0,0,0,0)',
+                            backgroundColor: 'rgba(0,0,0,0)',
+                            lineTension: 0.5
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    title:      {
+                        display: true,
+                        text:    "Chart.js Time Scale"
+                    },
+                    scales:     {
+                        xAxes: [{
+                            type:       "time",
+                            time:       {
+                                format: timeFormat,
+                                tooltipFormat: 'll',
+                                unit: 'day',
+                            },
+                            scaleLabel: {
+                                display:     true,
+                                labelString: 'Date'
+                            },
+                            distribution: 'linear',
+                            gridLines: {
+                                display: true,
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display:     true,
+                                labelString: 'value'
+                            },
+                            ticks: {
+                                display: true,
+                                callback: function(value, index, values) {
+                                    if(value%1==0) {
+                                        return value;
+                                    } else {
+                                        return '';
+                                    }
+                                }
+                            },
+                            gridLines: {
+                                display: true,
+                            }
+                        }]
+                    }
+                }
+            };
+
+            var ctx       = document.getElementById("canvas").getContext("2d");
+            window.myLine = new Chart(ctx, config);
+        }
+
+        window.onload = function () {
+            loadCanvas();
+        };
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,31 @@
+{% extends 'base_generic.html' %}
+{% block content %}
+<div class="page">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light centerText">
+            <h2>Gutli</h2>
+        </nav>
+        <div class="container card bg-light">
+            <h3 class="card-title loginTitle">Create Account</h3>
+            <form method="post" action="">
+            {% csrf_token %}
+                <div class="centerText">
+                    <td>{{ form.username.label_tag }}</td>
+                    <td>{{ form.username }}</td>
+                </div>
+                <div class="centerText">
+                    <td class="emailLabel">{{ form.email.label_tag }}</td>
+                    <td class="emailLabel">{{ form.email }}</td>
+                </div>
+                <div class="centerText">
+                    <td>{{ form.password.label_tag }}</td>
+                    <td>{{ form.password }}</td>
+                </div>
+                <div class="centerText">
+                    <input type="submit" value="Create account" class="btn btn-primary"/>
+                    <input type="hidden" name="next" value="{{ next }}" />
+                </div>
+            </form>
+        </div>
+</div>
+{% endblock %}
+

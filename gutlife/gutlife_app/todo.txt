@@ -1,0 +1,39 @@
+TODO
+
+06/07/2018
+-> save some data to database
+-> get date from form and save that to database
+-> also the problem of /bm-log/ being empty
+Okay all done. Bit of a ropey way of doing it
+(refreshing page with JS) but it works. Also
+tidied up the date entry format, with a default
+of the current date.
+
+Next step will actually be some design work?!?
+.. also user accounts actually, which i'm sure
+    will require restructuring of the data
+
+If i have to restructure data anyway, it probably makes
+more sense to set up user accounts before adding
+multiple graphs to the dashboard.. so that is the
+next step.
+
+TODO: user accounts.
+
+Okay getting there with the whole frequency thing...
+Can now have as many entries as i want in one week.
+TODO: tweak back/forward to look cleaner etc
+
+Need to get weekdaytimes and arrange it so that its index order
+corresponds to its date order -- to ensure that the entries
+are chronologically attached
+
+Okay that done, now need to make sure that all
+of weekdaytimes are actually appearing on the graph...
+it seems some of the first/last aren't.
+
+
+Next step:
+seems that we need to reformat the date/time thing.
+also it seems that weekdayTimes differ from data[i]['time']
+values.. must investigate this.
